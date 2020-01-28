@@ -1,13 +1,13 @@
 # cuda related
-export CUDA_HOME=/usr/local/cuda-10.0
+export CUDA_HOME=/usr/local/cuda
 export LD_LIBRARY_PATH="${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}"
 
 # path related
 export PRJ_ROOT="${PWD}/../../.."
-if [ -e "${PRJ_ROOT}/tools/venv/bin/activate" ]; then
-    # shellcheck disable=SC1090
-    . "${PRJ_ROOT}/tools/venv/bin/activate"
-fi
+# if [ -e "${PRJ_ROOT}/tools/venv/bin/activate" ]; then
+#     # shellcheck disable=SC1090
+#     . "${PRJ_ROOT}/tools/venv/bin/activate"
+# fi
 export PATH="${PATH}:${PRJ_ROOT}/utils"
 
 # python related
