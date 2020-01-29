@@ -56,20 +56,20 @@ fi
 if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
     echo "Stage 1: Feature extraction"
     # extract raw features
-    pids=()
-    for name in "${train_set}" "${dev_set}" "${eval_set}"; do
-    (
-        [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
-        echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
-        ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
-            parallel-wavegan-preprocess \
-                --config "${conf}" \
-                --scp "data/${name}/wav.scp" \
-                --dumpdir "${dumpdir}/${name}/raw" \
-                --n_jobs "${n_jobs}" \
-                --verbose "${verbose}"
-        echo "Successfully finished feature extraction of ${name} set."
-    ) &
+    # pids=()
+    # for name in "${train_set}" "${dev_set}" "${eval_set}"; do
+    # (
+    #     [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
+    #     echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
+    #     ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
+    #         parallel-wavegan-preprocess \
+    #             --config "${conf}" \
+    #             --scp "data/${name}/wav.scp" \
+    #             --dumpdir "${dumpdir}/${name}/raw" \
+    #             --n_jobs "${n_jobs}" \
+    #             --verbose "${verbose}"
+    #     echo "Successfully finished feature extraction of ${name} set."
+    # ) &
     # done
     # for name in "${train_set}"; do
     # (
@@ -112,21 +112,21 @@ if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
     #             --verbose "${verbose}"
     #     echo "Successfully finished feature extraction of ${name} set."
     # ) &
-    pids+=($!)
-    done
-    i=0; for pid in "${pids[@]}"; do wait "${pid}" || ((++i)); done
-    [ "${i}" -gt 0 ] && echo "$0: ${i} background jobs are failed." && exit 1;
-    echo "Successfully finished feature extraction."
+    # pids+=($!)
+    # done
+    # i=0; for pid in "${pids[@]}"; do wait "${pid}" || ((++i)); done
+    # [ "${i}" -gt 0 ] && echo "$0: ${i} background jobs are failed." && exit 1;
+    # echo "Successfully finished feature extraction."
 
-    # calculate statistics for normalization
-    echo "Statistics computation start. See the progress via ${dumpdir}/${train_set}/compute_statistics.log."
-    ${train_cmd} "${dumpdir}/${train_set}/compute_statistics.log" \
-        parallel-wavegan-compute-statistics \
-            --config "${conf}" \
-            --rootdir "${dumpdir}/${train_set}/raw" \
-            --dumpdir "${dumpdir}/${train_set}" \
-            --verbose "${verbose}"
-    echo "Successfully finished calculation of statistics."
+    # # calculate statistics for normalization
+    # echo "Statistics computation start. See the progress via ${dumpdir}/${train_set}/compute_statistics.log."
+    # ${train_cmd} "${dumpdir}/${train_set}/compute_statistics.log" \
+    #     parallel-wavegan-compute-statistics \
+    #         --config "${conf}" \
+    #         --rootdir "${dumpdir}/${train_set}/raw" \
+    #         --dumpdir "${dumpdir}/${train_set}" \
+    #         --verbose "${verbose}"
+    # echo "Successfully finished calculation of statistics."
 
     # normalize and dump them
     pids=()
