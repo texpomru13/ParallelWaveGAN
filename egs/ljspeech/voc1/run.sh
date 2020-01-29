@@ -146,6 +146,22 @@ if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
     ) &
     pids+=($!)
     done
+    for name in "${train_set}"; do
+    (
+        [ ! -e "${dumpdir}/${name}/norm" ] && mkdir -p "${dumpdir}/${name}/norm"
+        echo "Nomalization start. See the progress via ${dumpdir}/${name}/norm/normalize.log."
+        ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/norm/normalize.log" \
+            parallel-wavegan-normalize \
+                --config "${conf}" \
+                --stats "${dumpdir}/${train_set}/stats.h5" \
+                --rootdir "${dumpdir}/${name}/raw1" \
+                --dumpdir "${dumpdir}/${name}/norm" \
+                --n_jobs "${n_jobs}" \
+                --verbose "${verbose}"
+        echo "Successfully finished normalization of ${name} set."
+    ) &
+    pids+=($!)
+    done
     i=0; for pid in "${pids[@]}"; do wait "${pid}" || ((++i)); done
     [ "${i}" -gt 0 ] && echo "$0: ${i} background jobs are failed." && exit 1;
     echo "Successfully finished normalization."
