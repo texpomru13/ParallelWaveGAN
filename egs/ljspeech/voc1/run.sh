@@ -70,6 +70,7 @@ if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
                 --verbose "${verbose}"
         echo "Successfully finished feature extraction of ${name} set."
     ) &
+    done
     for name in "${train_set}"; do
     (
         [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
@@ -83,6 +84,7 @@ if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
                 --verbose "${verbose}"
         echo "Successfully finished feature extraction of ${name} set."
     ) &
+    done
     for name in "${train_set}"; do
     (
         [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
@@ -96,6 +98,7 @@ if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
                 --verbose "${verbose}"
         echo "Successfully finished feature extraction of ${name} set."
     ) &
+    done
     for name in "${train_set}"; do
     (
         [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
