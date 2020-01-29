@@ -70,6 +70,45 @@ if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
                 --verbose "${verbose}"
         echo "Successfully finished feature extraction of ${name} set."
     ) &
+    for name in "${train_set}"; do
+    (
+        [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
+        echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
+        ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
+            parallel-wavegan-preprocess \
+                --config "${conf}" \
+                --scp "data/${name}/wav1.scp" \
+                --dumpdir "${dumpdir}/${name}/raw" \
+                --n_jobs "${n_jobs}" \
+                --verbose "${verbose}"
+        echo "Successfully finished feature extraction of ${name} set."
+    ) &
+    for name in "${train_set}"; do
+    (
+        [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
+        echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
+        ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
+            parallel-wavegan-preprocess \
+                --config "${conf}" \
+                --scp "data/${name}/wav2.scp" \
+                --dumpdir "${dumpdir}/${name}/raw" \
+                --n_jobs "${n_jobs}" \
+                --verbose "${verbose}"
+        echo "Successfully finished feature extraction of ${name} set."
+    ) &
+    for name in "${train_set}"; do
+    (
+        [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
+        echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
+        ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
+            parallel-wavegan-preprocess \
+                --config "${conf}" \
+                --scp "data/${name}/wav3.scp" \
+                --dumpdir "${dumpdir}/${name}/raw" \
+                --n_jobs "${n_jobs}" \
+                --verbose "${verbose}"
+        echo "Successfully finished feature extraction of ${name} set."
+    ) &
     pids+=($!)
     done
     i=0; for pid in "${pids[@]}"; do wait "${pid}" || ((++i)); done
