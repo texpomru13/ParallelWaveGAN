@@ -130,7 +130,7 @@ if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
 
     # normalize and dump them
     pids=()
-    for name in "${train_set}" "${dev_set}" "${eval_set}"; do
+    for name in "${train_set}"; do
     (
         [ ! -e "${dumpdir}/${name}/norm" ] && mkdir -p "${dumpdir}/${name}/norm"
         echo "Nomalization start. See the progress via ${dumpdir}/${name}/norm/normalize.log."
@@ -138,7 +138,7 @@ if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
             parallel-wavegan-normalize \
                 --config "${conf}" \
                 --stats "${dumpdir}/${train_set}/stats.h5" \
-                --rootdir "${dumpdir}/${name}/raw" \
+                --rootdir "${dumpdir}/${name}/raw1" \
                 --dumpdir "${dumpdir}/${name}/norm" \
                 --n_jobs "${n_jobs}" \
                 --verbose "${verbose}"
