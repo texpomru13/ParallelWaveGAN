@@ -64,7 +64,7 @@ if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
         ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
             parallel-wavegan-preprocess \
                 --config "${conf}" \
-                --scp "data/${name}/wav.scp" \
+                --scp "data/${name}/wav1.scp" \
                 --dumpdir "${dumpdir}/${name}/raw" \
                 --n_jobs "${n_jobs}" \
                 --verbose "${verbose}"
