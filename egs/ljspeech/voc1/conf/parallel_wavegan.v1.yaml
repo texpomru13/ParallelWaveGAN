@@ -38,7 +38,7 @@ generator_params:
                           # Must be the same as num_mels.
     aux_context_window: 2 # Context window size for auxiliary feature.
                           # If set to 2, previous 2 and future 2 frames will be considered.
-    dropout: 0.0          # Dropout rate. 0.0 means no dropout applied.
+    dropout: 0.2          # Dropout rate. 0.0 means no dropout applied.
     use_weight_norm: true # Whether to use weight norm.
                           # If set to true, it will be applied to all of the conv layers.
     upsample_net: "ConvInUpsampleNetwork" # Upsampling network architecture.
@@ -89,7 +89,7 @@ allow_cache: true          # Whether to allow cache in dataset. If true, it requ
 #             OPTIMIZER & SCHEDULER SETTING               #
 ###########################################################
 generator_optimizer_params:
-    lr: 0.0004             # Generator's learning rate.
+    lr: 0.000005             # Generator's learning rate.
     eps: 1.0e-6            # Generator's epsilon.
     weight_decay: 0.0      # Generator's weight decay coefficient.
 generator_scheduler_params:
@@ -98,7 +98,7 @@ generator_scheduler_params:
                            # At each step size, lr will be multiplied by this parameter.
 generator_grad_norm: 10    # Generator's gradient norm.
 discriminator_optimizer_params:
-    lr: 0.0002            # Discriminator's learning rate.
+    lr: 0.000003            # Discriminator's learning rate.
     eps: 1.0e-6            # Discriminator's epsilon.
     weight_decay: 0.0      # Discriminator's weight decay coefficient.
 discriminator_scheduler_params:
