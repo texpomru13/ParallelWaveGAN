@@ -6,8 +6,8 @@
 # shellcheck disable=SC1091
 . ./path.sh || exit 1;
 
-num_dev=250
-num_eval=250
+num_dev=10
+num_eval=10
 train_set="train_nodev"
 dev_set="dev"
 eval_set="eval"
@@ -21,11 +21,11 @@ data_dir=$2
 # check arguments
 if [ $# != 2 ]; then
     echo "Usage: $0 [Options] <db_root> <data_dir>"
-    echo "e.g.: $0 downloads/LJSpeech-1.1 data"
+    echo "e.g.: $0 downloads/waves_yesno data"
     echo ""
     echo "Options:"
-    echo "    --num_dev: number of development uttreances (default=250)."
-    echo "    --num_eval: number of evaluation uttreances (default=250)."
+    echo "    --num_dev: number of development uttreances (default=10)."
+    echo "    --num_eval: number of evaluation uttreances (default=10)."
     echo "    --train_set: name of train set (default=train_nodev)."
     echo "    --dev_set: name of dev set (default=dev)."
     echo "    --eval_set: name of eval set (default=eval)."

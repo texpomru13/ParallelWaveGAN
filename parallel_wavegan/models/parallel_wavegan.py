@@ -14,6 +14,7 @@ from parallel_wavegan.layers import Conv1d
 from parallel_wavegan.layers import Conv1d1x1
 from parallel_wavegan.layers import ResidualBlock
 from parallel_wavegan.layers import upsample
+from parallel_wavegan import models
 
 
 class ParallelWaveGANGenerator(torch.nn.Module):
@@ -31,6 +32,7 @@ class ParallelWaveGANGenerator(torch.nn.Module):
                  aux_channels=80,
                  aux_context_window=2,
                  dropout=0.0,
+                 bias=True,
                  use_weight_norm=True,
                  use_causal_conv=False,
                  upsample_conditional_features=True,
@@ -51,6 +53,7 @@ class ParallelWaveGANGenerator(torch.nn.Module):
             aux_channels (int): Number of channels for auxiliary feature conv.
             aux_context_window (int): Context window size for auxiliary feature.
             dropout (float): Dropout rate. 0.0 means no dropout applied.
+            bias (bool): Whether to use bias parameter in conv layer.
             use_weight_norm (bool): Whether to use weight norm.
                 If set to true, it will be applied to all of the conv layers.
             use_causal_conv (bool): Whether to use causal structure.
@@ -79,12 +82,20 @@ class ParallelWaveGANGenerator(torch.nn.Module):
             upsample_params.update({
                 "use_causal_conv": use_causal_conv,
             })
-            if upsample_net == "ConvInUpsampleNetwork":
+            if upsample_net == "MelGANGenerator":
+                assert aux_context_window == 0
                 upsample_params.update({
-                    "aux_channels": aux_channels,
-                    "aux_context_window": aux_context_window,
+                    "use_weight_norm": False,  # not to apply twice
+                    "use_final_nolinear_activation": False,
                 })
-            self.upsample_net = getattr(upsample, upsample_net)(**upsample_params)
+                self.upsample_net = getattr(models, upsample_net)(**upsample_params)
+            else:
+                if upsample_net == "ConvInUpsampleNetwork":
+                    upsample_params.update({
+                        "aux_channels": aux_channels,
+                        "aux_context_window": aux_context_window,
+                    })
+                self.upsample_net = getattr(upsample, upsample_net)(**upsample_params)
         else:
             self.upsample_net = None
 
@@ -100,7 +111,7 @@ class ParallelWaveGANGenerator(torch.nn.Module):
                 aux_channels=aux_channels,
                 dilation=dilation,
                 dropout=dropout,
-                bias=True,  # NOTE: magenda uses bias, but musyoku doesn't
+                bias=bias,
                 use_causal_conv=use_causal_conv,
             )
             self.conv_layers += [conv]
@@ -191,6 +202,7 @@ class ParallelWaveGANDiscriminator(torch.nn.Module):
                  kernel_size=3,
                  layers=10,
                  conv_channels=64,
+                 dilation_factor=1,
                  nonlinear_activation="LeakyReLU",
                  nonlinear_activation_params={"negative_slope": 0.2},
                  bias=True,
@@ -204,22 +216,25 @@ class ParallelWaveGANDiscriminator(torch.nn.Module):
             kernel_size (int): Number of output channels.
             layers (int): Number of conv layers.
             conv_channels (int): Number of chnn layers.
+            dilation_factor (int): Dilation factor. For example, if dilation_factor = 2,
+                the dilation will be 2, 4, 8, ..., and so on.
             nonlinear_activation (str): Nonlinear function after each conv.
             nonlinear_activation_params (dict): Nonlinear function parameters
-            bias (int): Whether to use bias parameter in conv.
+            bias (bool): Whether to use bias parameter in conv.
             use_weight_norm (bool) Whether to use weight norm.
                 If set to true, it will be applied to all of the conv layers.
 
         """
         super(ParallelWaveGANDiscriminator, self).__init__()
         assert (kernel_size - 1) % 2 == 0, "Not support even number kernel size."
+        assert dilation_factor > 0, "Dilation factor must be > 0."
         self.conv_layers = torch.nn.ModuleList()
         conv_in_channels = in_channels
         for i in range(layers - 1):
             if i == 0:
                 dilation = 1
             else:
-                dilation = i
+                dilation = i if dilation_factor == 1 else dilation_factor ** i
                 conv_in_channels = conv_channels
             padding = (kernel_size - 1) // 2 * dilation
             conv_layer = [
@@ -287,6 +302,7 @@ class ResidualParallelWaveGANDiscriminator(torch.nn.Module):
                  gate_channels=128,
                  skip_channels=64,
                  dropout=0.0,
+                 bias=True,
                  use_weight_norm=True,
                  use_causal_conv=False,
                  nonlinear_activation="LeakyReLU",
@@ -304,6 +320,7 @@ class ResidualParallelWaveGANDiscriminator(torch.nn.Module):
             gate_channels (int):  Number of channels in gated conv.
             skip_channels (int): Number of channels in skip conv.
             dropout (float): Dropout rate. 0.0 means no dropout applied.
+            bias (bool): Whether to use bias parameter in conv.
             use_weight_norm (bool): Whether to use weight norm.
                 If set to true, it will be applied to all of the conv layers.
             use_causal_conv (bool): Whether to use causal structure.
@@ -342,7 +359,7 @@ class ResidualParallelWaveGANDiscriminator(torch.nn.Module):
                 aux_channels=-1,
                 dilation=dilation,
                 dropout=dropout,
-                bias=True,  # NOTE: magenda uses bias, but musyoku doesn't
+                bias=bias,
                 use_causal_conv=use_causal_conv,
             )
             self.conv_layers += [conv]

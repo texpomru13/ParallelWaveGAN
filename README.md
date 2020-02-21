@@ -1,10 +1,11 @@
-# Parallel WaveGAN implementation with Pytorch
+# Parallel WaveGAN (+ MelGAN) implementation with Pytorch
 
 ![](https://github.com/kan-bayashi/ParallelWaveGAN/workflows/CI/badge.svg) [![](https://img.shields.io/pypi/v/parallel-wavegan)](https://pypi.org/project/parallel-wavegan/) ![](https://img.shields.io/pypi/pyversions/parallel-wavegan) ![](https://img.shields.io/pypi/l/parallel-wavegan) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/espnet/notebook/blob/master/tts_realtime_demo.ipynb)
 
-This repository provides **UNOFFICIAL** [Parallel WaveGAN](https://arxiv.org/abs/1910.11480) implementation with Pytorch.
+This repository provides **UNOFFICIAL** [Parallel WaveGAN](https://arxiv.org/abs/1910.11480) and [MelGAN](https://arxiv.org/abs/1910.06711) implementations with Pytorch.  
+You can combine these state-of-the-art non-autoregressive models to build your own great vocoder!
 
-You can check our samples in [our demo HP](https://kan-bayashi.github.io/ParallelWaveGAN)!
+Please check our samples in [our demo HP](https://kan-bayashi.github.io/ParallelWaveGAN).
 
 ![](https://user-images.githubusercontent.com/22779813/68081503-4b8fcf00-fe52-11e9-8791-e02851220355.png)
 
@@ -16,6 +17,12 @@ You can try the realtime end-to-end text-to-speech demonstraion in Google Colab!
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/espnet/notebook/blob/master/tts_realtime_demo.ipynb)
 
+## What's new
+
+- 2020/02/22 **(New!)** [MelGAN G + MelGAN D + STFT-loss samples](#Results) are available!
+- 2020/02/12 Support [MelGAN](https://arxiv.org/abs/1910.06711)'s discriminator!
+- 2020/02/08 Support [MelGAN](https://arxiv.org/abs/1910.06711)'s generator!
+
 ## Requirements
 
 This repository is tested on Ubuntu 16.04 with a GPU Titan V.
@@ -24,9 +31,10 @@ This repository is tested on Ubuntu 16.04 with a GPU Titan V.
 - Cuda 10.0
 - CuDNN 7+
 - NCCL 2+ (for distributed multi-gpu training)
+- libsndfile (you can install via `sudo apt install libsndfile-dev` in ubuntu)
 
 Different cuda version should be working but not explicitly tested.  
-All of the codes are tested on Pytorch 1.0.1, 1.1, 1.2, 1.3 and 1.3.1.
+All of the codes are tested on Pytorch 1.0.1, 1.1, 1.2, 1.3.1 and 1.4.
 
 ## Setup
 
@@ -62,12 +70,13 @@ If you want to use different cuda version, please check `tools/Makefile` to chan
 ## Run
 
 This repository provides [Kaldi](https://github.com/kaldi-asr/kaldi)-style recipes, as the same as [ESPnet](https://github.com/espnet/espnet).  
-Currently, four recipes are supported.
+Currently, five recipes are supported.
 
 - [CMU Arctic](http://www.festvox.org/cmu_arctic/): English speakers
 - [LJSpeech](https://keithito.com/LJ-Speech-Dataset/): English female speaker
 - [JSUT](https://sites.google.com/site/shinnosuketakamichi/publication/jsut): Japanese female speaker
 - [CSMSC](https://www.data-baker.com/open_source.html): Mandarin female speaker
+- [JNAS](http://research.nii.ac.jp/src/en/JNAS.html): Japanese multi speaker
 
 To run the recipe, please follow the below instruction.
 
@@ -133,6 +142,18 @@ Even on the CPU (Intel(R) Xeon(R) Gold 6154 CPU @ 3.00GHz 16 threads), it can ge
 2019-11-06 09:04:56,697 (decode:129) INFO: finished generation of 250 utterances (RTF = 0.734).
 ```
 
+If you use MelGAN's generator, the decoding speed will be further faster.
+
+```bash
+# On CPU (Intel(R) Xeon(R) Gold 6154 CPU @ 3.00GHz 16 threads)
+[decode]: 100%|██████████| 250/250 [04:00<00:00,  1.04it/s, RTF=0.0882]
+2020-02-08 10:45:14,111 (decode:142) INFO: Finished generation of 250 utterances (RTF = 0.137).
+
+# On GPU (TITAN V)
+[decode]: 100%|██████████| 250/250 [00:06<00:00, 36.38it/s, RTF=0.00189]
+2020-02-08 05:44:42,231 (decode:142) INFO: Finished generation of 250 utterances (RTF = 0.002).
+```
+
 ## Results
 
 Here the results are summarized in the table.  
@@ -143,14 +164,18 @@ You can listen to the samples and download pretrained models from the link to ou
 | [ljspeech_parallel_wavegan.v1](https://drive.google.com/open?id=1wdHr1a51TLeo4iKrGErVKHVFyq6D17TU)          | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/ljspeech/voc1/conf/parallel_wavegan.v1.yaml)          | EN    | 22.05k  | 80-7600        | 1024 / 256 / None    | 400k    |
 | [ljspeech_parallel_wavegan.v1.long](https://drive.google.com/open?id=1XRn3s_wzPF2fdfGshLwuvNHrbgD0hqVS)     | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/ljspeech/voc1/conf/parallel_wavegan.v1.long.yaml)     | EN    | 22.05k  | 80-7600        | 1024 / 256 / None    | 1000k   |
 | [ljspeech_parallel_wavegan.v1.no_limit](https://drive.google.com/open?id=1NoD3TCmKIDHHtf74YsScX8s59aZFOFJA) | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/ljspeech/voc1/conf/parallel_wavegan.v1.no_limit.yaml) | EN    | 22.05k  | None           | 1024 / 256 / None    | 400k    |
+| [ljspeech_melgan.v1](https://drive.google.com/open?id=1z0vO1UMFHyeCdCLAmd7Moewi4QgCb07S)                    | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/ljspeech/voc1/conf/melgan.v1.yaml)                    | EN    | 22.05k  | 80-7600        | 1024 / 256 / None    | 400k    |
+| [ljspeech_melgan.v1.long](https://drive.google.com/open?id=1RqNGcFO7Geb6-4pJtMbC9-ph_WiWA14e)               | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/ljspeech/voc1/conf/melgan.v1.long.yaml)               | EN    | 22.05k  | 80-7600        | 1024 / 256 / None    | 1000k   |
+| [ljspeech_melgan_large.v1](https://drive.google.com/open?id=1KQt-gyxbG6iTZ4aVn9YjQuaGYjAleYs8)              | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/ljspeech/voc1/conf/melgan_large.v1.yaml)              | EN    | 22.05k  | 80-7600        | 1024 / 256 / None    | 400k    |
+| [ljspeech_melgan_large.v1.long](https://drive.google.com/open?id=1ogEx-wiQS7HVtdU0_TmlENURIe4v2erC)         | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/ljspeech/voc1/conf/melgan_large.v1.long.yaml)         | EN    | 22.05k  | 80-7600        | 1024 / 256 / None    | 1000k   |
+| [ljspeech_melgan.v3 (New!)](https://drive.google.com/open?id=1eXkm_Wf1YVlk5waP4Vgqd0GzMaJtW3y5)             | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/ljspeech/voc1/conf/melgan.v3.yaml)                    | EN    | 22.05k  | 80-7600        | 1024 / 256 / None    | 2000k   |
+| [ljspeech_melgan.v3.long (New!)](https://drive.google.com/open?id=1u1w4RPefjByX8nfsL59OzU2KgEksBhL1)        | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/ljspeech/voc1/conf/melgan.v3.long.yaml)               | EN    | 22.05k  | 80-7600        | 1024 / 256 / None    | 4000k   |
 | [jsut_parallel_wavegan.v1](https://drive.google.com/open?id=1UDRL0JAovZ8XZhoH0wi9jj_zeCKb-AIA)              | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/jsut/voc1/conf/parallel_wavegan.v1.yaml)              | JP    | 24k     | 80-7600        | 2048 / 300 / 1200    | 400k    |
 | [csmsc_parallel_wavegan.v1](https://drive.google.com/open?id=1C2nu9nOFdKcEd-D9xGquQ0bCia0B2v_4)             | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/csmsc/voc1/conf/parallel_wavegan.v1.yaml)             | ZH    | 24k     | 80-7600        | 2048 / 300 / 1200    | 400k    |
 | [arctic_slt_parallel_wavegan.v1](https://drive.google.com/open?id=1xG9CmSED2TzFdklD6fVxzf7kFV2kPQAJ)        | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/arctic/voc1/conf/parallel_wavegan.v1.yaml)            | EN    | 16k     | 80-7600        | 1024 / 256 / None    | 400k    |
 | [jnas_parallel_wavegan.v1](https://drive.google.com/open?id=1n_hkxPxryVXbp6oHM1NFm08q0TcoDXz1)              | [link](https://github.com/kan-bayashi/ParallelWaveGAN/blob/master/egs/jnas/voc1/conf/parallel_wavegan.v1.yaml)              | JP    | 16k     | 80-7600        | 1024 / 256 / None    | 400k    |
 
 If you want to check more results, please access at [our google drive](https://drive.google.com/open?id=1sd_QzcUNnbiaWq7L0ykMP7Xmk-zOuxTi).
-
-If you want to know the latest progress, please check https://github.com/kan-bayashi/ParallelWaveGAN/issues/1.
 
 ## How-to-use pretrained models
 
@@ -209,6 +234,8 @@ If you want to combine with TTS models, you can try the realtime demonstraion in
 - [Parallel WaveGAN](https://arxiv.org/abs/1910.11480)
 - [r9y9/wavenet_vocoder](https://github.com/r9y9/wavenet_vocoder)
 - [LiyuanLucasLiu/RAdam](https://github.com/LiyuanLucasLiu/RAdam)
+- [MelGAN](https://arxiv.org/abs/1910.06711)
+- [descriptinc/melgan-neurips](https://github.com/descriptinc/melgan-neurips)
 
 ## Acknowledgement
 
