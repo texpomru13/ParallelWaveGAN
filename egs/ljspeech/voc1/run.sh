@@ -14,7 +14,7 @@ n_gpus=4       # number of gpus in training
 n_jobs=32      # number of parallel jobs in feature extraction
 
 # NOTE(kan-bayashi): renamed to conf to avoid conflict in parse_options.sh
-conf=conf/parallel_wavegan.v1.yaml
+conf=conf/melgan.v3.long.yaml
 
 # directory path setting
 download_dir=downloads # direcotry to save downloaded files
@@ -39,10 +39,10 @@ eval_set="eval"         # name of evaluation data direcotry
 
 set -euo pipefail
 
-if [ "${stage}" -le -1 ] && [ "${stop_stage}" -ge -1 ]; then
-    echo "Stage -1: Data download"
-    local/data_download.sh "${download_dir}"
-fi
+# if [ "${stage}" -le -1 ] && [ "${stop_stage}" -ge -1 ]; then
+#     echo "Stage -1: Data download"
+#     local/data_download.sh "${download_dir}"
+# fi
 
 if [ "${stage}" -le 0 ] && [ "${stop_stage}" -ge 0 ]; then
     echo "Stage 0: Data preparation"
@@ -50,83 +50,41 @@ if [ "${stage}" -le 0 ] && [ "${stop_stage}" -ge 0 ]; then
         --train_set "${train_set}" \
         --dev_set "${dev_set}" \
         --eval_set "${eval_set}" \
-        "${download_dir}/train_taco" data
+        "${download_dir}/pwgen" data
 fi
 
 if [ "${stage}" -le 1 ] && [ "${stop_stage}" -ge 1 ]; then
     echo "Stage 1: Feature extraction"
     # extract raw features
-    # pids=()
-    # for name in "${train_set}" "${dev_set}" "${eval_set}"; do
-    # (
-    #     [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
-    #     echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
-    #     ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
-    #         parallel-wavegan-preprocess \
-    #             --config "${conf}" \
-    #             --scp "data/${name}/wav.scp" \
-    #             --dumpdir "${dumpdir}/${name}/raw" \
-    #             --n_jobs "${n_jobs}" \
-    #             --verbose "${verbose}"
-    #     echo "Successfully finished feature extraction of ${name} set."
-    # ) &
-    # done
-    # for name in "${train_set}"; do
-    # (
-    #     [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
-    #     echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
-    #     ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
-    #         parallel-wavegan-preprocess \
-    #             --config "${conf}" \
-    #             --scp "data/${name}/wav1.scp" \
-    #             --dumpdir "${dumpdir}/${name}/raw" \
-    #             --n_jobs "${n_jobs}" \
-    #             --verbose "${verbose}"
-    #     echo "Successfully finished feature extraction of ${name} set."
-    # ) &
-    # done
-    # for name in "${train_set}"; do
-    # (
-    #     [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
-    #     echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
-    #     ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
-    #         parallel-wavegan-preprocess \
-    #             --config "${conf}" \
-    #             --scp "data/${name}/wav2.scp" \
-    #             --dumpdir "${dumpdir}/${name}/raw" \
-    #             --n_jobs "${n_jobs}" \
-    #             --verbose "${verbose}"
-    #     echo "Successfully finished feature extraction of ${name} set."
-    # ) &
-    # done
-    # for name in "${train_set}"; do
-    # (
-    #     [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
-    #     echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
-    #     ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
-    #         parallel-wavegan-preprocess \
-    #             --config "${conf}" \
-    #             --scp "data/${name}/wav3.scp" \
-    #             --dumpdir "${dumpdir}/${name}/raw" \
-    #             --n_jobs "${n_jobs}" \
-    #             --verbose "${verbose}"
-    #     echo "Successfully finished feature extraction of ${name} set."
-    # ) &
-    # pids+=($!)
-    # done
-    # i=0; for pid in "${pids[@]}"; do wait "${pid}" || ((++i)); done
-    # [ "${i}" -gt 0 ] && echo "$0: ${i} background jobs are failed." && exit 1;
-    # echo "Successfully finished feature extraction."
+    pids=()
+    for name in "${train_set}" "${dev_set}" "${eval_set}"; do
+    (
+        [ ! -e "${dumpdir}/${name}/raw" ] && mkdir -p "${dumpdir}/${name}/raw"
+        echo "Feature extraction start. See the progress via ${dumpdir}/${name}/raw/preprocessing.log."
+        ${train_cmd} --num-threads "${n_jobs}" "${dumpdir}/${name}/raw/preprocessing.log" \
+            parallel-wavegan-preprocess \
+                --config "${conf}" \
+                --scp "data/${name}/wav.scp" \
+                --dumpdir "${dumpdir}/${name}/raw" \
+                --n_jobs "${n_jobs}" \
+                --verbose "${verbose}"
+        echo "Successfully finished feature extraction of ${name} set."
+    ) &
+    pids+=($!)
+    done
+    i=0; for pid in "${pids[@]}"; do wait "${pid}" || ((++i)); done
+    [ "${i}" -gt 0 ] && echo "$0: ${i} background jobs are failed." && exit 1;
+    echo "Successfully finished feature extraction."
 
-    # # calculate statistics for normalization
-    # echo "Statistics computation start. See the progress via ${dumpdir}/${train_set}/compute_statistics.log."
-    # ${train_cmd} "${dumpdir}/${train_set}/compute_statistics.log" \
-    #     parallel-wavegan-compute-statistics \
-    #         --config "${conf}" \
-    #         --rootdir "${dumpdir}/${train_set}/raw" \
-    #         --dumpdir "${dumpdir}/${train_set}" \
-    #         --verbose "${verbose}"
-    # echo "Successfully finished calculation of statistics."
+    # calculate statistics for normalization
+    echo "Statistics computation start. See the progress via ${dumpdir}/${train_set}/compute_statistics.log."
+    ${train_cmd} "${dumpdir}/${train_set}/compute_statistics.log" \
+        parallel-wavegan-compute-statistics \
+            --config "${conf}" \
+            --rootdir "${dumpdir}/${train_set}/raw" \
+            --dumpdir "${dumpdir}/${train_set}" \
+            --verbose "${verbose}"
+    echo "Successfully finished calculation of statistics."
 
     # normalize and dump them
     pids=()
